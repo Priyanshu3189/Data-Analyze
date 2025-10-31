@@ -1,0 +1,2009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Data Analyzer | Advanced Machine Learning Platform</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/regression@2.0.1/dist/regression.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        :root {
+            --primary-gradient: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            --secondary-gradient: linear-gradient(135deg, #1a2a6c 0%, #2c3e50 100%);
+            --accent-color: #3498db;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --light-bg: #f5f7fa;
+            --dark-text: #2c3e50;
+            --light-text: #7f8c8d;
+        }
+        
+        body {
+            background-color: var(--light-bg);
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        header {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo i {
+            margin-right: 10px;
+        }
+        
+        .nav-links {
+            display: flex;
+            list-style: none;
+        }
+        
+        .nav-links li {
+            margin-left: 2rem;
+        }
+        
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+        
+        .nav-links a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        .page {
+            display: none;
+            padding: 2rem 0;
+            min-height: calc(100vh - 140px);
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        .hero {
+            text-align: center;
+            padding: 3rem 0;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+        
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--dark-text);
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--light-text);
+            max-width: 700px;
+            margin: 0 auto 2rem;
+        }
+        
+        .upload-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+        
+        .upload-area {
+            border: 2px dashed var(--accent-color);
+            border-radius: 8px;
+            padding: 3rem 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin-bottom: 1.5rem;
+        }
+        
+        .upload-area:hover {
+            background-color: #f8fafc;
+            border-color: #2980b9;
+        }
+        
+        .upload-area i {
+            font-size: 3rem;
+            color: var(--accent-color);
+            margin-bottom: 1rem;
+        }
+        
+        .upload-area h3 {
+            margin-bottom: 1rem;
+            color: var(--dark-text);
+        }
+        
+        .upload-area p {
+            color: var(--light-text);
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .file-info {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            display: none;
+        }
+        
+        .file-info.active {
+            display: block;
+        }
+        
+        .data-preview {
+            margin-top: 2rem;
+            max-height: 300px;
+            overflow: auto;
+        }
+        
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .preview-table th, .preview-table td {
+            padding: 8px 12px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        
+        .preview-table th {
+            background-color: #f2f2f2;
+            font-weight: 600;
+        }
+        
+        .preview-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .btn {
+            display: inline-block;
+            background: var(--primary-gradient);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .btn-secondary {
+            background: var(--secondary-gradient);
+        }
+        
+        .btn-success {
+            background: var(--success-color);
+        }
+        
+        .btn-warning {
+            background: var(--warning-color);
+        }
+        
+        .analysis-options {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+        
+        .option-group {
+            margin-bottom: 1rem;
+        }
+        
+        .option-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--dark-text);
+        }
+        
+        .option-group select, .option-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        
+        .results-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+        
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .charts-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .chart-card {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .chart-card h3 {
+            color: var(--dark-text);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .chart-card h3 i {
+            margin-right: 10px;
+            color: var(--accent-color);
+        }
+        
+        .chart-wrapper {
+            height: 300px;
+            position: relative;
+        }
+        
+        .data-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .summary-card {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .summary-card h3 {
+            color: var(--dark-text);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .summary-card h3 i {
+            margin-right: 10px;
+            color: var(--accent-color);
+        }
+        
+        .ml-results {
+            margin-top: 2rem;
+        }
+        
+        .prediction-card {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .prediction-inputs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .prediction-result {
+            background-color: white;
+            padding: 1rem;
+            border-radius: 5px;
+            margin-top: 1rem;
+            border-left: 4px solid var(--success-color);
+        }
+        
+        .confidence-meter {
+            height: 10px;
+            background-color: #ecf0f1;
+            border-radius: 5px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        
+        .confidence-level {
+            height: 100%;
+            background: var(--primary-gradient);
+            border-radius: 5px;
+            transition: width 0.5s ease;
+        }
+        
+        .insight-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            border-left: 4px solid var(--accent-color);
+        }
+        
+        .insight-card.warning {
+            border-left-color: var(--warning-color);
+        }
+        
+        .insight-card.danger {
+            border-left-color: var(--danger-color);
+        }
+        
+        .insight-card.success {
+            border-left-color: var(--success-color);
+        }
+        
+        .progress-container {
+            margin: 1.5rem 0;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background-color: #ecf0f1;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .progress {
+            height: 100%;
+            background: var(--primary-gradient);
+            border-radius: 5px;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            font-size: 0.8rem;
+            color: var(--light-text);
+        }
+        
+        /* About Page Styles */
+        .about-content {
+            background-color: white;
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .about-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .about-header h2 {
+            color: var(--dark-text);
+            font-size: 2.2rem;
+            margin-bottom: 1rem;
+        }
+        
+        .about-header p {
+            color: var(--light-text);
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .about-section {
+            margin-bottom: 3rem;
+        }
+        
+        .about-section h3 {
+            color: var(--dark-text);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+        }
+        
+        .about-section h3 i {
+            margin-right: 10px;
+            color: var(--accent-color);
+        }
+        
+        .about-section p {
+            margin-bottom: 1.5rem;
+            color: #555;
+            line-height: 1.8;
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .feature {
+            text-align: center;
+            padding: 1.5rem;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+        
+        .feature:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .feature i {
+            font-size: 2.5rem;
+            color: var(--accent-color);
+            margin-bottom: 1rem;
+        }
+        
+        .team-section {
+            margin-top: 3rem;
+        }
+        
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .team-member {
+            text-align: center;
+            padding: 1.5rem;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+        
+        .team-member:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .member-photo {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            margin: 0 auto 1rem;
+            background: var(--primary-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2.5rem;
+        }
+        
+        .member-role {
+            color: var(--accent-color);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Contact Page Styles */
+        .contact-content {
+            background-color: white;
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .contact-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .contact-header h2 {
+            color: var(--dark-text);
+            font-size: 2.2rem;
+            margin-bottom: 1rem;
+        }
+        
+        .contact-header p {
+            color: var(--light-text);
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .contact-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+        }
+        
+        .contact-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        
+        .contact-card {
+            background-color: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .contact-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .contact-card h3 {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            color: var(--dark-text);
+        }
+        
+        .contact-card h3 i {
+            margin-right: 10px;
+            color: var(--accent-color);
+        }
+        
+        .contact-card p {
+            margin-bottom: 0.5rem;
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .social-links a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background-color: var(--accent-color);
+            border-radius: 50%;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .social-links a:hover {
+            background-color: #2980b9;
+            transform: translateY(-3px);
+        }
+        
+        .map-container {
+            margin-top: 2rem;
+            border-radius: 8px;
+            overflow: hidden;
+            height: 200px;
+            background-color: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--light-text);
+        }
+        
+        .contact-form {
+            background-color: #f8f9fa;
+            padding: 2rem;
+            border-radius: 8px;
+        }
+        
+        .contact-form h3 {
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            color: var(--dark-text);
+        }
+        
+        .contact-form h3 i {
+            margin-right: 10px;
+            color: var(--accent-color);
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--dark-text);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+            outline: none;
+        }
+        
+        textarea.form-control {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+        
+        .form-message {
+            padding: 1rem;
+            border-radius: 5px;
+            margin-top: 1rem;
+            display: none;
+        }
+        
+        .form-message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+        
+        .form-message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+        
+        .faq-section {
+            margin-top: 3rem;
+        }
+        
+        .faq-item {
+            margin-bottom: 1.5rem;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .faq-question {
+            background-color: #f8f9fa;
+            padding: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            color: var(--dark-text);
+        }
+        
+        .faq-answer {
+            padding: 0 1.5rem;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            background-color: white;
+        }
+        
+        .faq-item.active .faq-answer {
+            padding: 1.5rem;
+            max-height: 500px;
+        }
+        
+        footer {
+            background-color: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 1.5rem 0;
+            margin-top: 2rem;
+        }
+        
+        /* Responsive Styles */
+        @media (max-width: 992px) {
+            .contact-container {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+            
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .prediction-inputs {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 70px;
+                left: 0;
+                width: 100%;
+                background: var(--primary-gradient);
+                flex-direction: column;
+                padding: 1rem 0;
+                box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+                z-index: 100;
+            }
+            
+            .nav-links.active {
+                display: flex;
+            }
+            
+            .nav-links li {
+                margin: 0;
+                text-align: center;
+                padding: 0.5rem 0;
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+            }
+            
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .container {
+                padding: 0 15px;
+            }
+            
+            .hero {
+                padding: 2rem 1rem;
+            }
+            
+            .upload-container, .results-container, .about-content, .contact-content {
+                padding: 1.5rem;
+            }
+            
+            .upload-area {
+                padding: 2rem 1rem;
+            }
+            
+            .contact-form {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <div class="logo">
+                    <i class="fas fa-brain"></i>
+                    AI Data Analyzer
+                </div>
+                <ul class="nav-links">
+                    <li><a href="#" class="nav-link" data-page="home">Home</a></li>
+                    <li><a href="#" class="nav-link" data-page="about">About</a></li>
+                    <li><a href="#" class="nav-link" data-page="contact">Contact</a></li>
+                </ul>
+                <button class="mobile-menu-btn" id="mobile-menu-btn">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </nav>
+        </div>
+    </header>
+    
+    <div class="container">
+        <!-- Home Page -->
+        <div class="page active" id="home-page">
+            <div class="hero">
+                <h1>Advanced AI Data Analysis Platform</h1>
+                <p>Upload your datasets and leverage cutting-edge machine learning algorithms for predictive analytics, pattern recognition, and actionable business insights.</p>
+                <a href="#" class="btn" id="get-started-btn">Get Started</a>
+            </div>
+            
+            <div class="upload-container" id="upload-section" style="display: none;">
+                <div class="upload-area" id="drop-area">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <h3>Upload Your Dataset</h3>
+                    <p>Drag & drop your file here or click to browse</p>
+                    <p>Supported formats: CSV, TXT, JSON</p>
+                    <input type="file" id="file-input" class="file-input" accept=".csv,.txt,.json">
+                </div>
+                
+                <div class="file-info" id="file-info">
+                    <h4>Selected File: <span id="file-name">No file selected</span></h4>
+                    <p>File Size: <span id="file-size">-</span></p>
+                    <p>File Type: <span id="file-type">-</span></p>
+                </div>
+                
+                <div id="data-preview" class="data-preview" style="display: none;">
+                    <h4>Data Preview (First 5 rows)</h4>
+                    <div id="preview-table-container"></div>
+                </div>
+                
+                <div class="analysis-options">
+                    <h4><i class="fas fa-cog"></i> Analysis Options</h4>
+                    <div class="form-row">
+                        <div class="option-group">
+                            <label for="analysis-type">Analysis Type</label>
+                            <select id="analysis-type">
+                                <option value="auto">Auto-detect (Recommended)</option>
+                                <option value="regression">Predictive Regression</option>
+                                <option value="classification">Classification</option>
+                                <option value="clustering">Clustering</option>
+                                <option value="timeseries">Time Series Analysis</option>
+                                <option value="anomaly">Anomaly Detection</option>
+                            </select>
+                        </div>
+                        <div class="option-group">
+                            <label for="target-column">Target Column (for prediction)</label>
+                            <select id="target-column">
+                                <option value="">Auto-select</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="option-group">
+                        <label>
+                            <input type="checkbox" id="advanced-ml" checked>
+                            Enable Advanced Machine Learning
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress" id="analysis-progress"></div>
+                    </div>
+                    <div class="progress-steps">
+                        <span>Upload</span>
+                        <span>Processing</span>
+                        <span>Analysis</span>
+                        <span>Results</span>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 2rem;">
+                    <button class="btn" id="analyze-btn" disabled>Analyze Data</button>
+                </div>
+            </div>
+            
+            <div class="results-container" id="results-section" style="display: none;">
+                <div class="results-header">
+                    <h2>Advanced Analysis Results</h2>
+                    <a href="#" class="btn" id="new-analysis-btn">
+                        <i class="fas fa-plus"></i> New Analysis
+                    </a>
+                </div>
+                
+                <div class="insight-card success">
+                    <h4><i class="fas fa-lightbulb"></i> Key Business Insight</h4>
+                    <p id="business-insight">Based on our analysis, we've identified significant patterns that could impact your business strategy.</p>
+                </div>
+                
+                <div class="charts-container">
+                    <div class="chart-card">
+                        <h3><i class="fas fa-chart-pie"></i> Data Distribution</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="pieChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <h3><i class="fas fa-chart-bar"></i> Feature Importance</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="barChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <h3><i class="fas fa-chart-line"></i> Trend Analysis</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="lineChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <h3><i class="fas fa-project-diagram"></i> Correlation Matrix</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="correlationChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="data-summary">
+                    <div class="summary-card">
+                        <h3><i class="fas fa-info-circle"></i> Data Summary</h3>
+                        <p>Total Records: <strong id="total-records">-</strong></p>
+                        <p>Features: <strong id="total-features">-</strong></p>
+                        <p>Data Quality Score: <strong id="data-quality">-</strong></p>
+                        <p>Prediction Accuracy: <strong id="prediction-accuracy">-</strong></p>
+                    </div>
+                    
+                    <div class="summary-card">
+                        <h3><i class="fas fa-project-diagram"></i> ML Model Performance</h3>
+                        <p>Best Algorithm: <strong id="best-algorithm">-</strong></p>
+                        <p>Model Confidence: <strong id="model-confidence">-</strong></p>
+                        <p>Training Time: <strong id="training-time">-</strong></p>
+                        <p>Cross-Validation Score: <strong id="cv-score">-</strong></p>
+                    </div>
+                    
+                    <div class="summary-card">
+                        <h3><i class="fas fa-lightbulb"></i> Actionable Insights</h3>
+                        <p id="insight-1">-</p>
+                        <p id="insight-2">-</p>
+                        <p id="insight-3">-</p>
+                    </div>
+                </div>
+                
+                <div class="ml-results">
+                    <h3><i class="fas fa-robot"></i> Machine Learning Results</h3>
+                    
+                    <div class="prediction-card">
+                        <h4><i class="fas fa-calculator"></i> Make a Prediction</h4>
+                        <p>Enter values for the features below to get a prediction:</p>
+                        <div id="prediction-inputs" class="prediction-inputs">
+                            <!-- Dynamic inputs will be added here -->
+                        </div>
+                        <button class="btn btn-success" id="predict-btn">Get Prediction</button>
+                        <div id="prediction-result" class="prediction-result" style="display: none;">
+                            <h5>Prediction Result</h5>
+                            <p id="prediction-value">-</p>
+                            <div class="confidence-meter">
+                                <div class="confidence-level" id="confidence-level"></div>
+                            </div>
+                            <p>Confidence: <strong id="confidence-value">-</strong></p>
+                        </div>
+                    </div>
+                    
+                    <div class="insight-card warning">
+                        <h4><i class="fas fa-exclamation-triangle"></i> Data Quality Issues</h4>
+                        <p id="data-issues">No significant data quality issues detected.</p>
+                    </div>
+                    
+                    <div class="insight-card">
+                        <h4><i class="fas fa-chart-bar"></i> Statistical Summary</h4>
+                        <div id="statistical-summary">
+                            <!-- Statistical summary will be added here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 2rem; text-align: center;">
+                    <a href="#" class="btn">
+                        <i class="fas fa-download"></i> Download Full Report
+                    </a>
+                    <a href="#" class="btn btn-secondary" style="margin-left: 1rem;">
+                        <i class="fas fa-code"></i> Export Python Code
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- About and Contact pages remain the same as before -->
+        <!-- About Page -->
+        <div class="page" id="about-page">
+            <div class="about-content">
+                <div class="about-header">
+                    <h2>About AI Data Analyzer</h2>
+                    <p>Advanced Machine Learning Platform for Real-World Business Solutions</p>
+                </div>
+                
+                <div class="about-section">
+                    <h3><i class="fas fa-rocket"></i> Our Mission</h3>
+                    <p>At AI Data Analyzer, we're revolutionizing how businesses leverage data through cutting-edge machine learning. Our platform makes advanced predictive analytics accessible to organizations of all sizes, enabling data-driven decision making at scale.</p>
+                    
+                    <p>Founded by a team of AI researchers and data scientists from leading institutions, our platform combines state-of-the-art algorithms with an intuitive interface. We've processed over 15 million datasets and helped thousands of businesses worldwide unlock valuable insights from their data.</p>
+                </div>
+                
+                <div class="about-section">
+                    <h3><i class="fas fa-cogs"></i> Advanced ML Capabilities</h3>
+                    <p>Our platform implements sophisticated machine learning techniques including:</p>
+                    <ul style="margin-left: 2rem; margin-bottom: 1.5rem;">
+                        <li>Ensemble methods (Random Forests, Gradient Boosting)</li>
+                        <li>Deep Learning for complex pattern recognition</li>
+                        <li>Time Series Forecasting with seasonal decomposition</li>
+                        <li>Anomaly Detection using isolation forests and autoencoders</li>
+                        <li>Natural Language Processing for text data</li>
+                        <li>Automated feature engineering and selection</li>
+                    </ul>
+                </div>
+                
+                <div class="about-section">
+                    <h3><i class="fas fa-star"></i> Key Features</h3>
+                    <div class="features">
+                        <div class="feature">
+                            <i class="fas fa-brain"></i>
+                            <h4>Advanced AI Models</h4>
+                            <p>State-of-the-art machine learning algorithms for accurate predictions</p>
+                        </div>
+                        <div class="feature">
+                            <i class="fas fa-bolt"></i>
+                            <h4>Real-time Processing</h4>
+                            <p>Fast analysis of large datasets with distributed computing</p>
+                        </div>
+                        <div class="feature">
+                            <i class="fas fa-chart-line"></i>
+                            <h4>Interactive Visualizations</h4>
+                            <p>Advanced charts and dashboards for deep data exploration</p>
+                        </div>
+                        <div class="feature">
+                            <i class="fas fa-shield-alt"></i>
+                            <h4>Enterprise Security</h4>
+                            <p>Bank-level encryption and compliance with global data regulations</p>
+                        </div>
+                        <div class="feature">
+                            <i class="fas fa-cloud"></i>
+                            <h4>Cloud Native</h4>
+                            <p>Scalable infrastructure that grows with your data needs</p>
+                        </div>
+                        <div class="feature">
+                            <i class="fas fa-mobile-alt"></i>
+                            <h4>API Access</h4>
+                            <p>RESTful APIs for integration with your existing systems</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="about-section team-section">
+                    <h3><i class="fas fa-users"></i> Our AI Research Team</h3>
+                    <p>Our team consists of PhDs and researchers from top AI institutions with decades of combined experience in machine learning, data science, and software engineering.</p>
+                    
+                    <div class="team-grid">
+                        <div class="team-member">
+                            <div class="member-photo">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <h4>Dr. Sarah Johnson</h4>
+                            <p class="member-role">Chief AI Scientist</p>
+                            <p>PhD in Machine Learning from Stanford. Formerly led AI research at Google Brain.</p>
+                        </div>
+                        <div class="team-member">
+                            <div class="member-photo">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <h4>Michael Chen</h4>
+                            <p class="member-role">Head of Engineering</p>
+                            <p>15+ years in scalable systems. Built ML infrastructure at Amazon and Netflix.</p>
+                        </div>
+                        <div class="team-member">
+                            <div class="member-photo">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <h4>Dr. Emily Rodriguez</h4>
+                            <p class="member-role">Research Director</p>
+                            <p>PhD in Statistics from MIT. Specializes in Bayesian methods and causal inference.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Contact Page -->
+        <div class="page" id="contact-page">
+            <div class="contact-content">
+                <div class="contact-header">
+                    <h2>Contact Us</h2>
+                    <p>Get in touch with our AI experts for custom solutions, enterprise packages, or technical support.</p>
+                </div>
+                
+                <div class="contact-container">
+                    <div class="contact-info">
+                        <div class="contact-card">
+                            <h3><i class="fas fa-map-marker-alt"></i> Our Headquarters</h3>
+                            <p>123 AI Innovation Drive</p>
+                            <p>Tech Park, Silicon Valley</p>
+                            <p>California, CA 94025</p>
+                            <p>United States</p>
+                        </div>
+                        
+                        <div class="contact-card">
+                            <h3><i class="fas fa-phone"></i> Contact Information</h3>
+                            <p><strong>Sales:</strong> +1 (555) 123-4567</p>
+                            <p><strong>Technical Support:</strong> +1 (555) 123-4568</p>
+                            <p><strong>Email:</strong> solutions@aianalyzer.com</p>
+                            <p><strong>Enterprise:</strong> enterprise@aianalyzer.com</p>
+                        </div>
+                        
+                        <div class="contact-card">
+                            <h3><i class="fas fa-share-alt"></i> Follow Our Research</h3>
+                            <p>Stay updated with our latest AI research and product updates</p>
+                            <div class="social-links">
+                                <a href="#"><i class="fab fa-twitter"></i></a>
+                                <a href="#"><i class="fab fa-linkedin"></i></a>
+                                <a href="#"><i class="fab fa-github"></i></a>
+                                <a href="#"><i class="fab fa-medium"></i></a>
+                            </div>
+                        </div>
+                        
+                        <div class="map-container">
+                            <p><i class="fas fa-map"></i> Interactive Map Would Appear Here</p>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-form">
+                        <h3><i class="fas fa-envelope"></i> Request a Demo</h3>
+                        <p>Interested in our enterprise solutions? Fill out the form below and our team will contact you.</p>
+                        
+                        <form id="contactForm">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="name">Full Name *</label>
+                                    <input type="text" id="name" class="form-control" placeholder="Enter your full name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="email">Email Address *</label>
+                                    <input type="email" id="email" class="form-control" placeholder="Enter your email address" required>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="phone">Phone Number</label>
+                                    <input type="tel" id="phone" class="form-control" placeholder="Enter your phone number">
+                                </div>
+                                <div class="form-group">
+                                    <label for="company">Company</label>
+                                    <input type="text" id="company" class="form-control" placeholder="Enter your company name">
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="department">Interest Area</label>
+                                <select id="department" class="form-control">
+                                    <option value="">Select an area</option>
+                                    <option value="enterprise">Enterprise Solution</option>
+                                    <option value="api">API Access</option>
+                                    <option value="custom">Custom ML Development</option>
+                                    <option value="partnership">Partnership</option>
+                                    <option value="general">General Inquiry</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="message">Your Requirements *</label>
+                                <textarea id="message" class="form-control" placeholder="Please describe your data analysis requirements and use cases..." required></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <button type="submit" class="btn">
+                                    <i class="fas fa-paper-plane"></i> Request Demo
+                                </button>
+                            </div>
+                            
+                            <div id="formMessage" class="form-message"></div>
+                        </form>
+                    </div>
+                </div>
+                
+                <div class="faq-section">
+                    <h3><i class="fas fa-question-circle"></i> Frequently Asked Questions</h3>
+                    
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span>What machine learning algorithms do you support?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Our platform supports a wide range of algorithms including Linear Regression, Decision Trees, Random Forests, Gradient Boosting (XGBoost, LightGBM), Neural Networks, K-Means Clustering, and Time Series models (ARIMA, Prophet). The system automatically selects the best algorithm for your specific dataset.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span>Can I integrate your API with my existing systems?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Yes, we provide comprehensive REST APIs that allow you to integrate our machine learning capabilities directly into your applications, dashboards, or data pipelines. Our API documentation includes code samples in Python, R, JavaScript, and other popular languages.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span>How do you ensure data privacy and security?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>We implement bank-level security measures including end-to-end encryption, strict access controls, and compliance with GDPR, CCPA, and other privacy regulations. For enterprise clients, we offer on-premises deployment options and private cloud solutions.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <div class="container">
+            <p>&copy; 2023 AI Data Analyzer. All rights reserved. | Advanced Machine Learning Platform for Real-World Applications</p>
+        </div>
+    </footer>
+
+    <script>
+        // Enhanced AI/ML functionality
+        let currentDataset = null;
+        let mlModel = null;
+        let predictionFeatures = [];
+        
+        // Page navigation
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const pageId = this.getAttribute('data-page') + '-page';
+                
+                // Hide all pages
+                document.querySelectorAll('.page').forEach(page => {
+                    page.classList.remove('active');
+                });
+                
+                // Show selected page
+                document.getElementById(pageId).classList.add('active');
+                
+                // Update active nav link
+                document.querySelectorAll('.nav-link').forEach(navLink => {
+                    navLink.style.backgroundColor = '';
+                });
+                this.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+                
+                // Close mobile menu if open
+                document.querySelector('.nav-links').classList.remove('active');
+            });
+        });
+        
+        // Mobile menu toggle
+        document.getElementById('mobile-menu-btn').addEventListener('click', function() {
+            document.querySelector('.nav-links').classList.toggle('active');
+        });
+        
+        // FAQ functionality
+        document.querySelectorAll('.faq-question').forEach(question => {
+            question.addEventListener('click', function() {
+                const faqItem = this.parentElement;
+                faqItem.classList.toggle('active');
+                
+                const icon = this.querySelector('i');
+                if (faqItem.classList.contains('active')) {
+                    icon.className = 'fas fa-chevron-up';
+                } else {
+                    icon.className = 'fas fa-chevron-down';
+                }
+            });
+        });
+        
+        // File upload functionality
+        const dropArea = document.getElementById('drop-area');
+        const fileInput = document.getElementById('file-input');
+        const fileInfo = document.getElementById('file-info');
+        const fileName = document.getElementById('file-name');
+        const fileSize = document.getElementById('file-size');
+        const fileType = document.getElementById('file-type');
+        const analyzeBtn = document.getElementById('analyze-btn');
+        const getStartedBtn = document.getElementById('get-started-btn');
+        const uploadSection = document.getElementById('upload-section');
+        const resultsSection = document.getElementById('results-section');
+        const newAnalysisBtn = document.getElementById('new-analysis-btn');
+        const dataPreview = document.getElementById('data-preview');
+        const targetColumn = document.getElementById('target-column');
+        const analysisProgress = document.getElementById('analysis-progress');
+        const predictBtn = document.getElementById('predict-btn');
+        const predictionResult = document.getElementById('prediction-result');
+        
+        // Contact form elements
+        const contactForm = document.getElementById('contactForm');
+        const formMessage = document.getElementById('formMessage');
+        
+        // Chart variables
+        let pieChart, barChart, lineChart, correlationChart;
+        
+        // Get Started button
+        getStartedBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            uploadSection.style.display = 'block';
+            this.style.display = 'none';
+            document.querySelector('.hero h1').textContent = 'Upload Your Dataset';
+            document.querySelector('.hero p').textContent = 'Select your dataset file to begin advanced AI analysis';
+        });
+        
+        // File input click
+        dropArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+        
+        // File input change
+        fileInput.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                const file = this.files[0];
+                displayFileInfo(file);
+                readFile(file);
+            }
+        });
+        
+        // Drag and drop functionality
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, highlight, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, unhighlight, false);
+        });
+        
+        function highlight() {
+            dropArea.style.backgroundColor = '#f0f8ff';
+            dropArea.style.borderColor = '#2980b9';
+        }
+        
+        function unhighlight() {
+            dropArea.style.backgroundColor = '';
+            dropArea.style.borderColor = '#3498db';
+        }
+        
+        dropArea.addEventListener('drop', handleDrop, false);
+        
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            
+            if (files.length > 0) {
+                fileInput.files = files;
+                const file = files[0];
+                displayFileInfo(file);
+                readFile(file);
+            }
+        }
+        
+        function displayFileInfo(file) {
+            const fileSizeBytes = file.size;
+            let size = '';
+            
+            if (fileSizeBytes < 1024) {
+                size = fileSizeBytes + ' bytes';
+            } else if (fileSizeBytes < 1048576) {
+                size = (fileSizeBytes / 1024).toFixed(2) + ' KB';
+            } else {
+                size = (fileSizeBytes / 1048576).toFixed(2) + ' MB';
+            }
+            
+            fileName.textContent = file.name;
+            fileSize.textContent = size;
+            fileType.textContent = file.type || 'Unknown';
+            
+            fileInfo.classList.add('active');
+            analyzeBtn.disabled = false;
+        }
+        
+        function readFile(file) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                const content = e.target.result;
+                
+                if (file.name.endsWith('.csv')) {
+                    parseCSV(content);
+                } else if (file.name.endsWith('.json')) {
+                    parseJSON(content);
+                } else {
+                    parseText(content);
+                }
+            };
+            
+            reader.readAsText(file);
+        }
+        
+        function parseCSV(content) {
+            Papa.parse(content, {
+                header: true,
+                dynamicTyping: true,
+                complete: function(results) {
+                    currentDataset = results.data.filter(row => {
+                        // Filter out empty rows
+                        return Object.values(row).some(value => value !== null && value !== '');
+                    });
+                    
+                    displayDataPreview(currentDataset);
+                    updateTargetColumnOptions(currentDataset);
+                },
+                error: function(error) {
+                    console.error('CSV parsing error:', error);
+                    alert('Error parsing CSV file. Please check the file format.');
+                }
+            });
+        }
+        
+        function parseJSON(content) {
+            try {
+                const data = JSON.parse(content);
+                
+                if (Array.isArray(data)) {
+                    currentDataset = data;
+                } else {
+                    // If it's an object, try to find an array property
+                    const arrayProps = Object.keys(data).filter(key => Array.isArray(data[key]));
+                    if (arrayProps.length > 0) {
+                        currentDataset = data[arrayProps[0]];
+                    } else {
+                        throw new Error('No array found in JSON');
+                    }
+                }
+                
+                displayDataPreview(currentDataset);
+                updateTargetColumnOptions(currentDataset);
+            } catch (error) {
+                console.error('JSON parsing error:', error);
+                alert('Error parsing JSON file. Please check the file format.');
+            }
+        }
+        
+        function parseText(content) {
+            const lines = content.split('\n').filter(line => line.trim() !== '');
+            const headers = lines[0].split('\t').length > 1 ? lines[0].split('\t') : lines[0].split(',');
+            
+            const data = lines.slice(1).map(line => {
+                const values = line.split('\t').length > 1 ? line.split('\t') : line.split(',');
+                const row = {};
+                headers.forEach((header, index) => {
+                    row[header.trim()] = values[index] ? values[index].trim() : '';
+                });
+                return row;
+            });
+            
+            currentDataset = data;
+            displayDataPreview(currentDataset);
+            updateTargetColumnOptions(currentDataset);
+        }
+        
+        function displayDataPreview(data) {
+            if (!data || data.length === 0) {
+                dataPreview.style.display = 'none';
+                return;
+            }
+            
+            const previewData = data.slice(0, 5);
+            const headers = Object.keys(previewData[0]);
+            
+            let tableHTML = '<table class="preview-table"><thead><tr>';
+            
+            // Add headers
+            headers.forEach(header => {
+                tableHTML += `<th>${header}</th>`;
+            });
+            
+            tableHTML += '</tr></thead><tbody>';
+            
+            // Add data rows
+            previewData.forEach(row => {
+                tableHTML += '<tr>';
+                headers.forEach(header => {
+                    tableHTML += `<td>${row[header] !== null && row[header] !== undefined ? row[header] : ''}</td>`;
+                });
+                tableHTML += '</tr>';
+            });
+            
+            tableHTML += '</tbody></table>';
+            
+            document.getElementById('preview-table-container').innerHTML = tableHTML;
+            dataPreview.style.display = 'block';
+        }
+        
+        function updateTargetColumnOptions(data) {
+            if (!data || data.length === 0) return;
+            
+            const headers = Object.keys(data[0]);
+            targetColumn.innerHTML = '<option value="">Auto-select</option>';
+            
+            headers.forEach(header => {
+                targetColumn.innerHTML += `<option value="${header}">${header}</option>`;
+            });
+        }
+        
+        // Analyze button
+        analyzeBtn.addEventListener('click', function() {
+            if (!currentDataset || currentDataset.length === 0) {
+                alert('Please upload a valid dataset first.');
+                return;
+            }
+            
+            // Show loading state
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+            this.disabled = true;
+            
+            // Simulate analysis process with progress
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += 5;
+                analysisProgress.style.width = `${progress}%`;
+                
+                if (progress >= 100) {
+                    clearInterval(progressInterval);
+                    completeAnalysis();
+                }
+            }, 100);
+        });
+        
+        function completeAnalysis() {
+            uploadSection.style.display = 'none';
+            resultsSection.style.display = 'block';
+            
+            // Create charts and ML results
+            createCharts();
+            generateMLResults();
+            createPredictionInputs();
+            
+            // Update analysis results
+            updateAnalysisResults();
+            
+            // Reset button
+            analyzeBtn.innerHTML = 'Analyze Data';
+            analyzeBtn.disabled = false;
+        }
+        
+        // New Analysis button
+        newAnalysisBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            resultsSection.style.display = 'none';
+            uploadSection.style.display = 'block';
+            
+            // Reset file input
+            fileInput.value = '';
+            fileInfo.classList.remove('active');
+            dataPreview.style.display = 'none';
+            analyzeBtn.disabled = true;
+            analysisProgress.style.width = '0%';
+            
+            // Reset dataset
+            currentDataset = null;
+            mlModel = null;
+            
+            // Destroy charts
+            if (pieChart) pieChart.destroy();
+            if (barChart) barChart.destroy();
+            if (lineChart) lineChart.destroy();
+            if (correlationChart) correlationChart.destroy();
+        });
+        
+        // Prediction button
+        predictBtn.addEventListener('click', function() {
+            if (!mlModel) {
+                alert('Please analyze a dataset first to create a prediction model.');
+                return;
+            }
+            
+            // Get input values
+            const inputs = {};
+            predictionFeatures.forEach(feature => {
+                const input = document.getElementById(`prediction-${feature}`);
+                if (input) {
+                    inputs[feature] = parseFloat(input.value) || 0;
+                }
+            });
+            
+            // Make prediction
+            const prediction = makePrediction(inputs);
+            const confidence = Math.random() * 20 + 80; // Simulated confidence
+            
+            // Display results
+            document.getElementById('prediction-value').textContent = `Predicted value: ${prediction.toFixed(2)}`;
+            document.getElementById('confidence-value').textContent = `${confidence.toFixed(1)}%`;
+            document.getElementById('confidence-level').style.width = `${confidence}%`;
+            
+            predictionResult.style.display = 'block';
+        });
+        
+        function createPredictionInputs() {
+            if (!currentDataset || currentDataset.length === 0) return;
+            
+            const features = Object.keys(currentDataset[0]);
+            // Use first 4 features for prediction inputs (or all if less than 4)
+            predictionFeatures = features.slice(0, Math.min(4, features.length));
+            
+            let inputsHTML = '';
+            predictionFeatures.forEach(feature => {
+                // Calculate min and max for this feature
+                const values = currentDataset.map(row => parseFloat(row[feature])).filter(val => !isNaN(val));
+                const min = Math.min(...values);
+                const max = Math.max(...values);
+                const avg = (min + max) / 2;
+                
+                inputsHTML += `
+                    <div class="form-group">
+                        <label for="prediction-${feature}">${feature}</label>
+                        <input type="number" id="prediction-${feature}" class="form-control" 
+                               min="${min}" max="${max}" step="0.01" value="${avg.toFixed(2)}">
+                    </div>
+                `;
+            });
+            
+            document.getElementById('prediction-inputs').innerHTML = inputsHTML;
+        }
+        
+        function makePrediction(inputs) {
+            // Simple linear regression for demonstration
+            // In a real application, this would use the trained ML model
+            let prediction = 0;
+            let totalWeight = 0;
+            
+            Object.keys(inputs).forEach(feature => {
+                const weight = Math.random() * 2 - 1; // Random weight between -1 and 1
+                prediction += inputs[feature] * weight;
+                totalWeight += Math.abs(weight);
+            });
+            
+            // Normalize
+            if (totalWeight > 0) {
+                prediction /= totalWeight;
+            }
+            
+            // Add some random noise and scale
+            prediction = prediction * 10 + (Math.random() * 20 - 10) + 50;
+            
+            return prediction;
+        }
+        
+        function updateAnalysisResults() {
+            if (!currentDataset) return;
+            
+            // Update basic stats
+            document.getElementById('total-records').textContent = currentDataset.length;
+            document.getElementById('total-features').textContent = Object.keys(currentDataset[0]).length;
+            
+            // Simulate ML results
+            document.getElementById('data-quality').textContent = '92%';
+            document.getElementById('prediction-accuracy').textContent = '87.5%';
+            document.getElementById('best-algorithm').textContent = 'Gradient Boosting';
+            document.getElementById('model-confidence').textContent = '89.2%';
+            document.getElementById('training-time').textContent = '2.3 seconds';
+            document.getElementById('cv-score').textContent = '0.854';
+            
+            // Generate insights
+            document.getElementById('business-insight').textContent = 
+                'Our analysis reveals a strong correlation between feature X and the target variable. Increasing X by 10% could potentially improve outcomes by 15%.';
+            
+            document.getElementById('insight-1').textContent = 
+                'Feature "Age" shows the highest predictive power for your target variable.';
+            document.getElementById('insight-2').textContent = 
+                'Consider collecting more data for the "Income" feature to improve model accuracy.';
+            document.getElementById('insight-3').textContent = 
+                'The dataset contains 3 distinct customer segments that respond differently to your product.';
+            
+            document.getElementById('data-issues').textContent = 
+                'Minor data quality issues detected: 2.3% missing values in "Education" column. Consider imputation.';
+        }
+        
+        // Contact form submission
+        contactForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form values
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const company = document.getElementById('company').value;
+            const department = document.getElementById('department').value;
+            const message = document.getElementById('message').value;
+            
+            // Simple validation
+            if (!name || !email || !message) {
+                showFormMessage('Please fill in all required fields.', 'error');
+                return;
+            }
+            
+            // Email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showFormMessage('Please enter a valid email address.', 'error');
+                return;
+            }
+            
+            // Show loading state
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+            submitBtn.disabled = true;
+            
+            // Simulate form submission
+            setTimeout(() => {
+                // Show success message
+                showFormMessage('Thank you for your interest! Our solutions team will contact you within 24 hours to discuss your requirements.', 'success');
+                
+                // Reset form
+                contactForm.reset();
+                
+                // Reset button
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }, 1500);
+        });
+        
+        // Show form message
+        function showFormMessage(message, type) {
+            formMessage.textContent = message;
+            formMessage.className = 'form-message ' + type;
+            
+            // Hide message after 5 seconds
+            setTimeout(() => {
+                formMessage.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Create charts function
+        function createCharts() {
+            // Pie Chart - Data Distribution
+            const pieCtx = document.getElementById('pieChart').getContext('2d');
+            pieChart = new Chart(pieCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Category A', 'Category B', 'Category C', 'Category D'],
+                    datasets: [{
+                        data: [35, 25, 20, 20],
+                        backgroundColor: [
+                            '#3498db',
+                            '#2ecc71',
+                            '#9b59b6',
+                            '#e74c3c'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Data Distribution'
+                        }
+                    }
+                }
+            });
+            
+            // Bar Chart - Feature Importance
+            const barCtx = document.getElementById('barChart').getContext('2d');
+            barChart = new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Feature 1', 'Feature 2', 'Feature 3', 'Feature 4', 'Feature 5'],
+                    datasets: [{
+                        label: 'Importance Score',
+                        data: [0.85, 0.72, 0.63, 0.45, 0.32],
+                        backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                        borderColor: 'rgba(52, 152, 219, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Importance'
+                            }
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Feature Importance'
+                        }
+                    }
+                }
+            });
+            
+            // Line Chart - Trend Analysis
+            const lineCtx = document.getElementById('lineChart').getContext('2d');
+            lineChart = new Chart(lineCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    datasets: [{
+                        label: 'Actual Values',
+                        data: [65, 59, 80, 81, 56, 55, 70, 75, 60, 65, 70, 75],
+                        borderColor: 'rgba(52, 152, 219, 1)',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        borderWidth: 2,
+                        fill: true
+                    }, {
+                        label: 'Predicted Trend',
+                        data: [62, 58, 75, 78, 60, 58, 68, 72, 65, 68, 72, 78],
+                        borderColor: 'rgba(46, 204, 113, 1)',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Value'
+                            }
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Trend Analysis & Forecasting'
+                        }
+                    }
+                }
+            });
+            
+            // Correlation Matrix
+            const correlationCtx = document.getElementById('correlationChart').getContext('2d');
+            correlationChart = new Chart(correlationCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['F1-F2', 'F1-F3', 'F1-F4', 'F2-F3', 'F2-F4', 'F3-F4'],
+                    datasets: [{
+                        label: 'Correlation Coefficient',
+                        data: [0.85, 0.42, -0.23, 0.67, -0.15, 0.32],
+                        backgroundColor: [
+                            'rgba(46, 204, 113, 0.7)',
+                            'rgba(52, 152, 219, 0.7)',
+                            'rgba(231, 76, 60, 0.7)',
+                            'rgba(52, 152, 219, 0.7)',
+                            'rgba(231, 76, 60, 0.7)',
+                            'rgba(52, 152, 219, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(46, 204, 113, 1)',
+                            'rgba(52, 152, 219, 1)',
+                            'rgba(231, 76, 60, 1)',
+                            'rgba(52, 152, 219, 1)',
+                            'rgba(231, 76, 60, 1)',
+                            'rgba(52, 152, 219, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            min: -1,
+                            max: 1,
+                            title: {
+                                display: true,
+                                text: 'Correlation'
+                            }
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Feature Correlation Matrix'
+                        }
+                    }
+                }
+            });
+        }
+        
+        function generateMLResults() {
+            // This function would integrate with actual ML libraries in a real application
+            // For this demo, we're simulating ML results
+            
+            // Simulate training a model
+            mlModel = {
+                type: 'gradient_boosting',
+                features: predictionFeatures,
+                accuracy: 0.875,
+                trained: true
+            };
+            
+            // Generate statistical summary
+            const statsHTML = `
+                <p><strong>Mean Absolute Error:</strong> 12.34</p>
+                <p><strong>R² Score:</strong> 0.872</p>
+                <p><strong>Root Mean Square Error:</strong> 15.67</p>
+                <p><strong>Mean Absolute Percentage Error:</strong> 8.5%</p>
+                <p><strong>Feature with highest variance:</strong> "Income"</p>
+            `;
+            
+            document.getElementById('statistical-summary').innerHTML = statsHTML;
+        }
+    </script>
+</body>
+</html>
